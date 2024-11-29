@@ -1,11 +1,11 @@
 {
-    "name": "journal",
-    "short_name": "journal",
+    "name": "grades_journal",
+    "short_name": "grades_journal",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Assigment",
+    "description": "A new Flutter project.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

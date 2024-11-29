@@ -1,6 +1,6 @@
-# journal
+# grades_journal
 
-Assigment
+A new Flutter project.
 
 ## Getting Started
 
