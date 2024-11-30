@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grades_journal/views/login_screen.dart';
-
-
 import 'Bloc/AuthBloc/auth_bloc.dart';
 import 'DatabaseHelper/repository.dart';
 

@@ -56,7 +56,6 @@ class GradesScreen extends StatelessWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text("Grade deleted")),
                             );
-                            // Оновити екран після видалення
                             (context as Element).reassemble();
                           },
                         ),

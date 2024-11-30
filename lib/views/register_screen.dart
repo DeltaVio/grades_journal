@@ -5,7 +5,7 @@ import '../Models/users.dart';
 import '../components/button.dart';
 import '../components/textfield.dart';
 import '../constants/env.dart';
-import 'grades_screen.dart'; // Змінили імпорт на GradesScreen
+import 'grades_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -29,7 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is SuccessRegister) {
-          Env.gotoReplacement(context, const GradesScreen()); // Замінили Home на GradesScreen
+          Env.gotoReplacement(context, const GradesScreen());
         } else if (state is FailureState) {
           Env.snackBar(context, state.error);
         }

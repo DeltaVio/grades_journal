@@ -5,7 +5,7 @@ import '../Bloc/AuthBloc/auth_bloc.dart';
 import '../components/button.dart';
 import '../components/textfield.dart';
 import '../constants/env.dart';
-import 'grades_screen.dart'; // Змінили імпорт на GradesScreen
+import 'grades_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
-          Env.gotoReplacement(context, const GradesScreen()); // Замінили Home на GradesScreen
+          Env.gotoReplacement(context, const GradesScreen());
         } else if (state is FailureState) {
           Env.snackBar(context, state.error);
         }
