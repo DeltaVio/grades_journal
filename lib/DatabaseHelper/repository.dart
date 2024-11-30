@@ -41,6 +41,27 @@ class Repository{
     }
   }
 
+  // Add grade
+  Future<int> addGrade(int userId, String date, String subject, int grade) async {
+    final db = await databaseHelper.initDB();
+    return await db.insert('grades', {
+      'userId': userId,
+      'date': date,
+      'subject': subject,
+      'grade': grade,
+    });
+  }
 
+  // Get grades
+  Future<List<Map<String, dynamic>>> getGrades(int userId) async {
+    final db = await databaseHelper.initDB();
+    return await db.query('grades', where: 'userId = ?', whereArgs: [userId]);
+  }
+
+  // Delete grades
+  Future<int> deleteGrade(int gradeId) async {
+    final db = await databaseHelper.initDB();
+    return await db.delete('grades', where: 'gradeId = ?', whereArgs: [gradeId]);
+  }
 
 }

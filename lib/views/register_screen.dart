@@ -5,7 +5,7 @@ import '../Models/users.dart';
 import '../components/button.dart';
 import '../components/textfield.dart';
 import '../constants/env.dart';
-import 'grades_screen.dart';
+import 'grades_screen.dart'; // Змінили імпорт на GradesScreen
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -23,14 +23,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final confirmPassword = TextEditingController();
 
   final formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if(state is SuccessRegister){
-          Env.gotoReplacement(context, const Home());
-        }else if (state is FailureState){
-          //Error message
+        if (state is SuccessRegister) {
+          Env.gotoReplacement(context, const GradesScreen()); // Замінили Home на GradesScreen
+        } else if (state is FailureState) {
           Env.snackBar(context, state.error);
         }
       },
@@ -42,7 +42,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 key: formKey,
                 child: Column(
                   children: [
-
                     const ListTile(
                       horizontalTitleGap: 5,
                       contentPadding: EdgeInsets.symmetric(horizontal: 10),
@@ -52,8 +51,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     InputField(
                       controller: fullName,
                       hintText: "Full name",
-                      validator: (value){
-                        if(value.isEmpty){
+                      validator: (value) {
+                        if (value.isEmpty) {
                           return "Full name is required";
                         }
                         return null;
@@ -62,8 +61,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     InputField(
                       controller: email,
                       hintText: "Email",
-                      validator: (value){
-                        if(value.isEmpty){
+                      validator: (value) {
+                        if (value.isEmpty) {
                           return "Email is required";
                         }
                         return null;
@@ -72,8 +71,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     InputField(
                       controller: username,
                       hintText: "Username",
-                      validator: (value){
-                        if(value.isEmpty){
+                      validator: (value) {
+                        if (value.isEmpty) {
                           return "Username is required";
                         }
                         return null;
@@ -82,8 +81,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     InputField(
                       controller: password,
                       hintText: "Password",
-                      validator: (value){
-                        if(value.isEmpty){
+                      validator: (value) {
+                        if (value.isEmpty) {
                           return "Password is required";
                         }
                         return null;
@@ -92,41 +91,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     InputField(
                       controller: confirmPassword,
                       hintText: "Re-enter password",
-                      validator: (value){
-                        if(value.isEmpty){
+                      validator: (value) {
+                        if (value.isEmpty) {
                           return "Re-enter password is required";
-                        }else if (password.text != confirmPassword.text){
+                        } else if (password.text != confirmPassword.text) {
                           return "Passwords don't match";
                         }
                         return null;
                       },
                     ),
-                    state is LoadingState? const CircularProgressIndicator() : Button(
+                    state is LoadingState
+                        ? const CircularProgressIndicator()
+                        : Button(
                         label: "REGISTER",
-                        onPressed: (){
-                          if(formKey.currentState!.validate()){
+                        onPressed: () {
+                          if (formKey.currentState!.validate()) {
                             context.read<AuthBloc>().add(RegisterEvent(
                                 Users(
                                     fullName: fullName.text,
                                     email: email.text,
                                     username: username.text,
-                                    password: password.text
-                                )));
+                                    password: password.text)));
                           }
-                        }
-                    ),
+                        }),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text("Already have an account?"),
                         TextButton(
-                            onPressed: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=> const LoginScreen()));
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                      const LoginScreen()));
                             },
-                            child: const Text("LOGIN",style: TextStyle(color: Colors.purple),))
+                            child: const Text(
+                              "LOGIN",
+                              style: TextStyle(color: Colors.purple),
+                            ))
                       ],
                     )
-
                   ],
                 ),
               ),
