@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:grades_journal/DatabaseHelper/database_helper.dart';
 import 'package:intl/intl.dart';
-import 'delete_account_screen.dart';  // Імпортуємо екран для видалення акаунту
-import 'login_screen.dart';  // Імпортуємо екран для логіну
+import 'package:grades_journal/DatabaseHelper/database_helper.dart';
+import 'add_grade_screen.dart';
+import 'delete_account_screen.dart'; // Екран видалення акаунту
+import 'login_screen.dart'; // Екран логіну
 
 class GradesScreen extends StatefulWidget {
-  final int userId;  // Додаємо параметр userId, щоб передавати ідентифікатор користувача
+  final int userId;
 
   const GradesScreen({super.key, required this.userId});
 
@@ -15,8 +16,6 @@ class GradesScreen extends StatefulWidget {
 
 class _GradesScreenState extends State<GradesScreen> {
   final dbHelper = DatabaseHelper();
-  final subjectController = TextEditingController();
-  final gradeController = TextEditingController();
   List<Map<String, dynamic>> grades = [];
 
   @override
@@ -26,32 +25,19 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   void fetchGrades() async {
-    final data = await dbHelper.getGradesForUser(widget.userId); // Отримуємо оцінки для поточного користувача
+    print("User ID: ${widget.userId}");
+    print("Fetching grades...");
+    final data = await dbHelper.getGradesForUser(widget.userId);
     setState(() {
       grades = data;
     });
+    print("Grades fetched: $grades");
   }
+
 
   String formatDate(String date) {
-    DateTime dateTime = DateTime.parse(date); // Конвертуємо рядок у DateTime
-    return DateFormat('yyyy-MM-dd').format(dateTime); // Форматуємо дату у вигляді '2024-12-01'
-  }
-
-  // Оновлений метод для додавання оцінки з user_id
-  void addGrade() async {
-    if (subjectController.text.isNotEmpty &&
-        gradeController.text.isNotEmpty &&
-        int.tryParse(gradeController.text) != null) {
-      await dbHelper.insertGrade({
-        'user_id': widget.userId, // Додаємо user_id
-        'subject': subjectController.text.trim(),
-        'grade': int.parse(gradeController.text.trim()),
-        'date': DateTime.now().toIso8601String(),
-      });
-      fetchGrades();
-      subjectController.clear();
-      gradeController.clear();
-    }
+    DateTime dateTime = DateTime.parse(date);
+    return DateFormat('yyyy-MM-dd').format(dateTime);
   }
 
   void deleteGrade(int id) async {
@@ -59,16 +45,14 @@ class _GradesScreenState extends State<GradesScreen> {
     fetchGrades();
   }
 
-  // Функція для виходу з акаунту
   void logout() {
-    // Логіка виходу з акаунту
+    debugPrint('Logging out...');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
-  // Показуємо меню з опціями
   void showLogoutMenu() {
     showMenu(
       context: context,
@@ -106,44 +90,12 @@ class _GradesScreenState extends State<GradesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),
-            onPressed: showLogoutMenu, // Показуємо меню
+            onPressed: showLogoutMenu,
           ),
         ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: subjectController,
-                    decoration: const InputDecoration(
-                      hintText: "Subject",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: gradeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      hintText: "Grade",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: addGrade,
-                  child: const Text("Add"),
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: ListView.builder(
               itemCount: grades.length,
@@ -151,7 +103,9 @@ class _GradesScreenState extends State<GradesScreen> {
                 final grade = grades[index];
                 return ListTile(
                   title: Text("${grade['subject']}"),
-                  subtitle: Text("Grade: ${grade['grade']}, Date: ${formatDate(grade['date'])}"), // Відображаємо дату
+                  subtitle: Text(
+                    "Grade: ${grade['grade']}, Date: ${formatDate(grade['date'])}",
+                  ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => deleteGrade(grade['id']),
@@ -161,6 +115,21 @@ class _GradesScreenState extends State<GradesScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddGradeScreen(
+                userId: widget.userId,
+                refreshGrades: fetchGrades,
+              ),
+            ),
+          );
+          fetchGrades();
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
