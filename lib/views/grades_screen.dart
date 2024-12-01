@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:grades_journal/DatabaseHelper/database_helper.dart';
 import 'package:intl/intl.dart';
+import 'delete_account_screen.dart';  // Імпортуємо екран для видалення акаунту
+import 'login_screen.dart';  // Імпортуємо екран для логіну
 
 class GradesScreen extends StatefulWidget {
   final int userId;  // Додаємо параметр userId, щоб передавати ідентифікатор користувача
@@ -57,10 +59,57 @@ class _GradesScreenState extends State<GradesScreen> {
     fetchGrades();
   }
 
+  // Функція для виходу з акаунту
+  void logout() {
+    // Логіка виходу з акаунту
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  // Показуємо меню з опціями
+  void showLogoutMenu() {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(100.0, 80.0, 0.0, 0.0),
+      items: [
+        PopupMenuItem(
+          child: TextButton(
+            onPressed: logout,
+            child: const Text("Logout"),
+          ),
+        ),
+        PopupMenuItem(
+          child: TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DeleteAccountScreen(userId: widget.userId),
+                ),
+              );
+            },
+            child: const Text("Delete Account"),
+          ),
+        ),
+      ],
+      elevation: 8.0,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Grades Journal")),
+      appBar: AppBar(
+        title: const Text("Grades Journal"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: showLogoutMenu, // Показуємо меню
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
