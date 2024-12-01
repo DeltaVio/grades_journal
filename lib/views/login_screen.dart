@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (formKey.currentState!.validate()) {
       final db = await dbHelper.database;
 
-      // Отримуємо користувача з бази даних по username та password
+      // Retrieve the user from the database by username and password
       final user = await db.query(
         'users',
         where: 'username = ? AND password = ?',
@@ -31,14 +31,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (user.isNotEmpty) {
-        // Перетворюємо значення id на тип int
+        // Convert the id value to type int
         final userId = user.first['id'] as int;
 
-        // Перехід на екран оцінок і передача userId
+        // Navigate to the grades screen and pass the userId
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => GradesScreen(userId: userId), // передаємо userId
+            builder: (context) => GradesScreen(userId: userId), // pass the userId
           ),
         );
       } else {
@@ -60,10 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * .6,
-                    child: Image.asset("assets/main_icon.png"),
-                  ),
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: usernameController,
