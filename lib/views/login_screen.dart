@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:grades_journal/views/register_screen.dart';
-import '../Bloc/AuthBloc/auth_bloc.dart';
-import '../components/button.dart';
-import '../components/textfield.dart';
-import '../constants/env.dart';
+import 'package:grades_journal/DatabaseHelper/database_helper.dart';
 import 'grades_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,91 +11,104 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final username = TextEditingController();
-  final password = TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  final dbHelper = DatabaseHelper();
+
+  void loginUser() async {
+    if (formKey.currentState!.validate()) {
+      final db = await dbHelper.database;
+
+      final user = await db.query(
+        'users',
+        where: 'username = ? AND password = ?',
+        whereArgs: [
+          usernameController.text.trim(),
+          passwordController.text.trim(),
+        ],
+      );
+
+      if (user.isNotEmpty) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const GradesScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid username or password")),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is Authenticated) {
-          Env.gotoReplacement(context, const GradesScreen());
-        } else if (state is FailureState) {
-          Env.snackBar(context, state.error);
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          body: Center(
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * .6,
-                      child: Hero(
-                          tag: "image",
-                          child: Image.asset("assets/main_icon.png")),
-                    ),
-                    InputField(
-                      controller: username,
-                      hintText: "Username",
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "Username is required";
-                        }
-                        return null;
-                      },
-                    ),
-                    InputField(
-                      controller: password,
-                      hintText: "Password",
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "Password is required";
-                        }
-                        return null;
-                      },
-                    ),
-                    state is LoadingState
-                        ? const CircularProgressIndicator()
-                        : Button(
-                        label: "LOGIN",
+    return Scaffold(
+      body: Center(
+        child: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * .6,
+                    child: Image.asset("assets/main_icon.png"),
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: usernameController,
+                    decoration: const InputDecoration(labelText: "Username"),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Username is required";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: "Password"),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Password is required";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: loginUser,
+                    child: const Text("Login"),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Don't have an account?"),
+                      TextButton(
                         onPressed: () {
-                          if (formKey.currentState!.validate()) {
-                            context.read<AuthBloc>().add(LoginEvent(
-                              username.text,
-                              password.text,
-                            ));
-                          }
-                        }),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Don't have an account?"),
-                        TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                      const RegisterScreen()));
-                            },
-                            child: const Text(
-                              "REGISTER",
-                              style: TextStyle(color: Colors.purple),
-                            ))
-                      ],
-                    )
-                  ],
-                ),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text("Register"),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

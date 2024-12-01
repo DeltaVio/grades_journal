@@ -1,87 +1,108 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../Bloc/AuthBloc/auth_bloc.dart';
-import '../DatabaseHelper/repository.dart';
-import '../constants/env.dart';
-import 'add_grade_screen.dart';
-import 'login_screen.dart';
+import 'package:grades_journal/DatabaseHelper/database_helper.dart';
 
-class GradesScreen extends StatelessWidget {
+class GradesScreen extends StatefulWidget {
   const GradesScreen({super.key});
 
   @override
+  State<GradesScreen> createState() => _GradesScreenState();
+}
+
+class _GradesScreenState extends State<GradesScreen> {
+  final dbHelper = DatabaseHelper();
+  final subjectController = TextEditingController();
+  final gradeController = TextEditingController();
+  List<Map<String, dynamic>> grades = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchGrades();
+  }
+
+  void fetchGrades() async {
+    final data = await dbHelper.getGrades();
+    setState(() {
+      grades = data;
+    });
+  }
+
+  void addGrade() async {
+    if (subjectController.text.isNotEmpty &&
+        gradeController.text.isNotEmpty &&
+        int.tryParse(gradeController.text) != null) {
+      await dbHelper.insertGrade({
+        'subject': subjectController.text.trim(),
+        'grade': int.parse(gradeController.text.trim()),
+        'date': DateTime.now().toIso8601String(),
+      });
+      fetchGrades();
+      subjectController.clear();
+      gradeController.clear();
+    }
+  }
+
+  void deleteGrade(int id) async {
+    await dbHelper.deleteGrade(id);
+    fetchGrades();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final repository = Repository();
-
-    return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is UnAuthenticated) {
-          Env.gotoReplacement(context, const LoginScreen());
-        }
-      },
-      builder: (context, state) {
-        if (state is Authenticated) {
-          final userId = state.users.userId!;
-
-          return Scaffold(
-            appBar: AppBar(
-              title: Text("Grades: ${state.users.fullName}"),
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    context.read<AuthBloc>().add(UnAuthenticatedEvent());
-                  },
-                  icon: const Icon(Icons.logout),
+    return Scaffold(
+      appBar: AppBar(title: const Text("Grades Journal")),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: subjectController,
+                    decoration: const InputDecoration(
+                      hintText: "Subject",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: gradeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: "Grade",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: addGrade,
+                  child: const Text("Add"),
                 ),
               ],
             ),
-            body: FutureBuilder<List<Map<String, dynamic>>>(
-              future: repository.getGrades(userId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                  final grades = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: grades.length,
-                    itemBuilder: (context, index) {
-                      final grade = grades[index];
-                      return ListTile(
-                        title: Text(grade['subject']),
-                        subtitle: Text("Date: ${grade['date']} | Grade: ${grade['grade']}"),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            await repository.deleteGrade(grade['gradeId']);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Grade deleted")),
-                            );
-                            (context as Element).reassemble();
-                          },
-                        ),
-                      );
-                    },
-                  );
-                } else {
-                  return const Center(child: Text("No grades available"));
-                }
-              },
-            ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddGradeScreen(userId: userId),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: grades.length,
+              itemBuilder: (context, index) {
+                final grade = grades[index];
+                return ListTile(
+                  title: Text("${grade['subject']}"),
+                  subtitle: Text("Grade: ${grade['grade']}"),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => deleteGrade(grade['id']),
                   ),
                 );
               },
-              child: const Icon(Icons.add),
             ),
-          );
-        }
-        return const Center(child: Text("Loading user data..."));
-      },
+          ),
+        ],
+      ),
     );
   }
 }
