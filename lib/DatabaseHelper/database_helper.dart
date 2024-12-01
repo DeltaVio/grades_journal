@@ -28,38 +28,97 @@ class DatabaseHelper {
   }
 
   Future _onCreate(Database db, int version) async {
+    // Створення таблиці користувачів
     await db.execute('''
       CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fullName TEXT NOT NULL,
-        email TEXT NOT NULL,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
       )
     ''');
 
+    // Створення таблиці оцінок з додаванням поля для user_id
     await db.execute('''
       CREATE TABLE grades (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,  -- посилання на користувача
         subject TEXT NOT NULL,
-        grade INTEGER NOT NULL,
-        date TEXT NOT NULL
+        grade INTEGER NOT NULL CHECK(grade >= 0 AND grade <= 100),  -- обмеження для оцінки
+        date TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES users(id)  -- зв'язок з таблицею користувачів
       )
     ''');
   }
 
+  // Додавання нового користувача
+  Future<int> insertUser(Map<String, dynamic> user) async {
+    final db = await database;
+    return await db.insert('users', user);
+  }
+
+  // Видалення користувача
+  Future<int> deleteUser(int userId) async {
+    final db = await database;
+    // Спочатку видаляємо всі оцінки цього користувача
+    await db.delete('grades', where: 'user_id = ?', whereArgs: [userId]);
+    return await db.delete('users', where: 'id = ?', whereArgs: [userId]);
+  }
+
+  // Додавання оцінки
   Future<int> insertGrade(Map<String, dynamic> grade) async {
     final db = await database;
     return await db.insert('grades', grade);
   }
 
-  Future<List<Map<String, dynamic>>> getGrades() async {
+  // Видалення оцінки
+  Future<int> deleteGrade(int gradeId) async {
     final db = await database;
-    return await db.query('grades', orderBy: 'date DESC');
+    return await db.delete('grades', where: 'id = ?', whereArgs: [gradeId]);
   }
 
-  Future<int> deleteGrade(int id) async {
+  // Перегляд оцінок для конкретного користувача
+  Future<List<Map<String, dynamic>>> getGradesForUser(int userId) async {
     final db = await database;
-    return await db.delete('grades', where: 'id = ?', whereArgs: [id]);
+    return await db.query(
+      'grades',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'date DESC',
+    );
+  }
+
+  // Фільтрація оцінок по предмету
+  Future<List<Map<String, dynamic>>> getGradesBySubject(
+      int userId, String subject) async {
+    final db = await database;
+    return await db.query(
+      'grades',
+      where: 'user_id = ? AND subject = ?',
+      whereArgs: [userId, subject],
+      orderBy: 'date DESC',
+    );
+  }
+
+  // Фільтрація оцінок по даті
+  Future<List<Map<String, dynamic>>> getGradesByDate(
+      int userId, String date) async {
+    final db = await database;
+    return await db.query(
+      'grades',
+      where: 'user_id = ? AND date = ?',
+      whereArgs: [userId, date],
+      orderBy: 'date DESC',
+    );
+  }
+
+  // Оновлення оцінки (якщо потрібно)
+  Future<int> updateGrade(int id, Map<String, dynamic> updatedGrade) async {
+    final db = await database;
+    return await db.update(
+      'grades',
+      updatedGrade,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

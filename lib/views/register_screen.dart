@@ -24,8 +24,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       try {
         await db.insert('users', {
-          'fullName': fullNameController.text.trim(),
-          'email': emailController.text.trim(),
           'username': usernameController.text.trim(),
           'password': passwordController.text.trim(),
         });
@@ -61,30 +59,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     title: Text("Register"),
                     subtitle: Text("Create a new account"),
                   ),
-                  TextFormField(
-                    controller: fullNameController,
-                    decoration: const InputDecoration(labelText: "Full Name"),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Full Name is required";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: emailController,
-                    decoration: const InputDecoration(labelText: "Email"),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Email is required";
-                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                        return "Invalid email format";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
                   TextFormField(
                     controller: usernameController,
                     decoration: const InputDecoration(labelText: "Username"),

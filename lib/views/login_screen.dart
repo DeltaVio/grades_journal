@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (formKey.currentState!.validate()) {
       final db = await dbHelper.database;
 
+      // Отримуємо користувача з бази даних по username та password
       final user = await db.query(
         'users',
         where: 'username = ? AND password = ?',
@@ -30,9 +31,15 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (user.isNotEmpty) {
+        // Перетворюємо значення id на тип int
+        final userId = user.first['id'] as int;
+
+        // Перехід на екран оцінок і передача userId
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const GradesScreen()),
+          MaterialPageRoute(
+            builder: (context) => GradesScreen(userId: userId), // передаємо userId
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
