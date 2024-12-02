@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 class AddGradeScreen extends StatefulWidget {
   final int userId;
-  final Function refreshGrades; // Функція для оновлення списку оцінок
+  final Function refreshGrades;
 
   const AddGradeScreen({
     super.key,
@@ -19,7 +19,7 @@ class AddGradeScreen extends StatefulWidget {
 class _AddGradeScreenState extends State<AddGradeScreen> {
   final subjectController = TextEditingController();
   final gradeController = TextEditingController();
-  DateTime? selectedDate; // Дата, вибрана користувачем
+  DateTime? selectedDate;
 
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -51,19 +51,15 @@ class _AddGradeScreenState extends State<AddGradeScreen> {
 
       await dbHelper.insertGrade(grade);
 
-      // Оновлюємо список оцінок
       widget.refreshGrades();
 
-      // Повертаємось на попередній екран
       Navigator.pop(context);
     } else {
-      // Показати повідомлення, якщо дані неповні
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill in all fields!")),
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {

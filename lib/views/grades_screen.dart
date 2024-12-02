@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:grades_journal/DatabaseHelper/database_helper.dart';
 import 'add_grade_screen.dart';
-import 'delete_account_screen.dart'; // Екран видалення акаунту
-import 'login_screen.dart'; // Екран логіну
+import 'delete_account_screen.dart';
+import 'login_screen.dart';
+import '../Helpers/auth_notifier.dart';
 
-class GradesScreen extends StatefulWidget {
+class GradesScreen extends ConsumerStatefulWidget {
   final int userId;
 
   const GradesScreen({super.key, required this.userId});
 
   @override
-  State<GradesScreen> createState() => _GradesScreenState();
+  ConsumerState<GradesScreen> createState() => _GradesScreenState();
 }
 
-class _GradesScreenState extends State<GradesScreen> {
+class _GradesScreenState extends ConsumerState<GradesScreen> {
   final dbHelper = DatabaseHelper();
   List<Map<String, dynamic>> grades = [];
 
@@ -34,7 +36,6 @@ class _GradesScreenState extends State<GradesScreen> {
     print("Grades fetched: $grades");
   }
 
-
   String formatDate(String date) {
     DateTime dateTime = DateTime.parse(date);
     return DateFormat('yyyy-MM-dd').format(dateTime);
@@ -46,7 +47,8 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   void logout() {
-    debugPrint('Logging out...');
+    ref.read(authProvider.notifier).logout();
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -58,12 +60,6 @@ class _GradesScreenState extends State<GradesScreen> {
       context: context,
       position: RelativeRect.fromLTRB(100.0, 80.0, 0.0, 0.0),
       items: [
-        PopupMenuItem(
-          child: TextButton(
-            onPressed: logout,
-            child: const Text("Logout"),
-          ),
-        ),
         PopupMenuItem(
           child: TextButton(
             onPressed: () {
@@ -87,6 +83,11 @@ class _GradesScreenState extends State<GradesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Grades Journal"),
+        leading: IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: logout, // Виклик методу logout
+          tooltip: "Logout",
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),

@@ -1,56 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grades_journal/DatabaseHelper/database_helper.dart';
 import 'grades_screen.dart';
 import 'register_screen.dart';
+import '../Helpers/auth_notifier.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final usernameController = TextEditingController();
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final dbHelper = DatabaseHelper();
 
-class _LoginScreenState extends State<LoginScreen> {
-  final usernameController = TextEditingController();
-  final passwordController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
-  final dbHelper = DatabaseHelper();
+    Future<void> loginUser() async {
+      if (formKey.currentState!.validate()) {
+        final db = await dbHelper.database;
 
-  void loginUser() async {
-    if (formKey.currentState!.validate()) {
-      final db = await dbHelper.database;
-
-      // Retrieve the user from the database by username and password
-      final user = await db.query(
-        'users',
-        where: 'username = ? AND password = ?',
-        whereArgs: [
-          usernameController.text.trim(),
-          passwordController.text.trim(),
-        ],
-      );
-
-      if (user.isNotEmpty) {
-        // Convert the id value to type int
-        final userId = user.first['id'] as int;
-
-        // Navigate to the grades screen and pass the userId
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => GradesScreen(userId: userId), // pass the userId
-          ),
+        final user = await db.query(
+          'users',
+          where: 'username = ? AND password = ?',
+          whereArgs: [
+            usernameController.text.trim(),
+            passwordController.text.trim(),
+          ],
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid username or password")),
-        );
+
+        if (user.isNotEmpty) {
+          final userId = user.first['id'] as int;
+
+          ref.read(authProvider.notifier).login();
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GradesScreen(userId: userId),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Invalid username or password")),
+          );
+        }
       }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(

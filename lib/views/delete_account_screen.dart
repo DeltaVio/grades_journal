@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:grades_journal/DatabaseHelper/database_helper.dart';
-import 'login_screen.dart';  // Для повернення на екран логіну
+import 'login_screen.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
-  final int userId;  // Ідентифікатор користувача
+  final int userId;
 
   const DeleteAccountScreen({super.key, required this.userId});
 
@@ -14,11 +14,10 @@ class DeleteAccountScreen extends StatefulWidget {
 class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   final dbHelper = DatabaseHelper();
 
-  // Функція для видалення користувача
   void deleteUser() async {
     final db = await dbHelper.database;
     await db.delete(
-      'users', // Видаляємо користувача з таблиці 'users'
+      'users',
       where: 'id = ?',
       whereArgs: [widget.userId],
     );
@@ -27,14 +26,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       const SnackBar(content: Text("User deleted successfully")),
     );
 
-    // Повертаємося на екран логіну
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
-  // Підтвердження видалення через AlertDialog
   void showDeleteConfirmationDialog() {
     showDialog(
       context: context,
@@ -45,14 +42,14 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Закриваємо діалог без видалення
+                Navigator.pop(context);
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                deleteUser(); // Видаляємо користувача
-                Navigator.pop(context); // Закриваємо діалог після видалення
+                deleteUser();
+                Navigator.pop(context);
               },
               child: const Text('Delete'),
             ),
